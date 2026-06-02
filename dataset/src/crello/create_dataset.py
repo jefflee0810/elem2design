@@ -24,6 +24,7 @@ def main() -> None:
     parser.add_argument("--config", type=str, default="dataset/src/crello/config/crello_v1.yaml")
     parser.add_argument("--debug", action="store_true")
     parser.add_argument("--raw_role_folder", type=str, default=None)
+    parser.add_argument("--splits", type=str, default=None, help="Comma-separated subset of splits to build, e.g. 'test'. Default: all.")
     args = parser.parse_args()
 
     config = read_yaml(args.config)
@@ -49,7 +50,10 @@ def main() -> None:
     role_dict = role_factory(folder=args.raw_role_folder)
     image_path_dict = ele_image_factory(folder="./dataset/dataset/crello_images")
 
-    for split in dataset_dict:
+    splits = list(dataset_dict) if args.splits is None else [s.strip() for s in args.splits.split(",")]
+    for split in splits:
+        if split not in dataset_dict:
+            raise ValueError(f"Unknown split '{split}'. Available: {list(dataset_dict)}")
         annotations = []
         dataset = dataset_dict[split]
         dataset = add_column(dataset, col_dict=image_path_dict, col_name="image_path")

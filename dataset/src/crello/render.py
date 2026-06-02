@@ -1,3 +1,4 @@
+import argparse
 import io
 from functools import partial
 from pathlib import Path
@@ -25,7 +26,12 @@ role_filter4 = partial(role_filter, role=4)
 
 
 def main() -> None:
-    output_dir = Path("dataset/dataset/crello_images")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--output_dir", type=str, default="dataset/dataset/crello_images")
+    parser.add_argument("--splits", type=str, default=None, help="Comma-separated subset of splits to render, e.g. 'test' or 'train,validation'. Default: all.")
+    args = parser.parse_args()
+
+    output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     dataset_dict = hfds_factory(DATASET)
@@ -34,7 +40,10 @@ def main() -> None:
     renderer = ExampleRenderer(features=hfds_helper.renderer_features)
     role_dict = role_factory()
 
-    for split in dataset_dict:
+    splits = list(dataset_dict) if args.splits is None else [s.strip() for s in args.splits.split(",")]
+    for split in splits:
+        if split not in dataset_dict:
+            raise ValueError(f"Unknown split '{split}'. Available: {list(dataset_dict)}")
         dataset = dataset_dict[split]
         dataset = add_column(dataset, col_dict=role_dict, col_name="role")
 

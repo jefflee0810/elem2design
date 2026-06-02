@@ -49,15 +49,16 @@ def load_pretrained_model(model_path, model_base, load_8bit=False, load_4bit=Fal
         warnings.warn('There is `lora` in model name but no `model_base` is provided. If you are loading a LoRA model, please provide the `model_base` argument. Detailed instruction: https://github.com/haotian-liu/LLaVA#launch-a-model-worker-lora-weights-unmerged.')
     if model_base is not None:
         from llava.model.language_model.llava_llama import LlavaConfig
-        if 'llava' in model_base or 'llama' in model_base:
+        model_base_lower = model_base.lower()
+        if 'llava' in model_base_lower or 'llama' in model_base_lower:
             lora_cfg_pretrained = LlavaConfig.from_pretrained(model_path)
-        if 'mistral' in model_base:
+        if 'mistral' in model_base_lower:
             lora_cfg_pretrained = LlavaMistralConfig.from_pretrained(model_path)
         tokenizer = AutoTokenizer.from_pretrained(model_base, use_fast=False)
-        if 'llava' in model_base or 'llama' in model_base:
+        if 'llava' in model_base_lower or 'llama' in model_base_lower:
             print('Loading LLaVA from base model...')
             model = LlavaLlamaForCausalLM.from_pretrained(model_base, low_cpu_mem_usage=True, config=lora_cfg_pretrained, **kwargs)
-        if 'mistral' in model_base:
+        if 'mistral' in model_base_lower:
             print('Loading Mistral from base model...')
             model = LlavaMistralForCausalLM.from_pretrained(model_base, low_cpu_mem_usage=True, config=lora_cfg_pretrained, **kwargs)
         token_num, tokem_dim = model.lm_head.out_features, model.lm_head.in_features
